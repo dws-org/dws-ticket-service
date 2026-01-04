@@ -1,0 +1,44 @@
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+  disable:
+    - typecheck
+
+linters-settings:
+  errcheck:
+    check-blank: false
+    check-type-assertions: false
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+  staticcheck:
+    checks: ["all"]
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+    - path: prisma/db/
+      linters:
+        - all
+    - text: "Error return value of .*.Close is not checked"
+      linters:
+        - errcheck
+    - text: "unused-parameter"
+      linters:
+        - revive
+
+run:
+  timeout: 5m
+  tests: false
+  skip-dirs:
+    - prisma/db
+    - vendor

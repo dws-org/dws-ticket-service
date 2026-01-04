@@ -1,0 +1,24 @@
+generator client {
+  provider = "go run github.com/steebchen/prisma-client-go"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Ticket {
+  id         String   @id @default(uuid())
+  userId     String   // Keycloak user ID from JWT subject
+  eventId    String   // Event ID from dws-event-service
+  quantity   Int
+  totalPrice Float
+  status     String   @default("pending") // pending, confirmed, cancelled
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([eventId])
+  @@index([status])
+  @@map("tickets")
+}

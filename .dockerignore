@@ -1,0 +1,14 @@
+.env
+.env.local
+.env.*.local
+server
+dws-ticket-service
+*.test
+*.out
+coverage.html
+vendor/
+.vscode/
+.idea/
+.DS_Store
+prisma/db/
+go.work
