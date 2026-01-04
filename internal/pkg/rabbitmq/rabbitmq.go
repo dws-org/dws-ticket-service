@@ -157,6 +157,33 @@ func (r *RabbitMQService) PublishTicketPurchased(msg types.TicketMessage) error 
 	return nil
 }
 
+func (r *RabbitMQService) ConsumeTicketPurchased() (<-chan amqp.Delivery, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	if r.channel == nil {
+		return nil, fmt.Errorf("RabbitMQ channel is nil")
+	}
+
+	msgs, err := r.channel.Consume(
+		r.config.Queue.Purchased, // queue
+		"",                       // consumer tag
+		false,                    // auto-ack
+		false,                    // exclusive
+		false,                    // no-local
+		false,                    // no-wait
+		nil,                      // args
+	)
+
+	if err != nil {
+		log.WithError(err).Error("Failed to register consumer")
+		return nil, fmt.Errorf("failed to register consumer: %w", err)
+	}
+
+	log.WithField("queue", r.config.Queue.Purchased).Info("Consumer registered successfully")
+	return msgs, nil
+}
+
 func (r *RabbitMQService) HealthCheck() error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
