@@ -77,9 +77,13 @@ func consumeTicketMessages(cfg *configs.Config, dbService *services.DatabaseServ
 		for msg := range msgs {
 			if err := processTicketMessage(msg, dbService); err != nil {
 				log.WithError(err).Error("Failed to process message")
-				msg.Nack(false, true) // Requeue on error
+				if nackErr := msg.Nack(false, true); nackErr != nil {
+					log.WithError(nackErr).Error("Failed to nack message")
+				}
 			} else {
-				msg.Ack(false) // Acknowledge successful processing
+				if ackErr := msg.Ack(false); ackErr != nil {
+					log.WithError(ackErr).Error("Failed to ack message")
+				}
 			}
 		}
 	}()
