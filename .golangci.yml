@@ -39,4 +39,3 @@ issues:
 run:
   timeout: 5m
   tests: false
-  skip-dirs-use-default: true
