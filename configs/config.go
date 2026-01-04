@@ -84,14 +84,18 @@ func LoadConfig() (*Config, error) {
 		config.Database.URL = dbURL
 	}
 
-	// Set RabbitMQ URL from environment
+	// Set RabbitMQ URL from environment or use default
 	if rabbitURL := os.Getenv("RABBITMQ_URL"); rabbitURL != "" {
 		config.RabbitMQ.URL = rabbitURL
+	} else if config.RabbitMQ.URL == "" {
+		config.RabbitMQ.URL = "amqp://guest:guest@rabbitmq-service-api.rabbitmq.svc.cluster.local:5672/"
 	}
 
-	// Set Keycloak URL from environment
+	// Set Keycloak URL from environment or use default
 	if keycloakURL := os.Getenv("KEYCLOAK_URL"); keycloakURL != "" {
 		config.Keycloak.URL = keycloakURL
+	} else if config.Keycloak.URL == "" {
+		config.Keycloak.URL = "http://keycloak-service.keycloak.svc.cluster.local:8080"
 	}
 
 	return &config, nil

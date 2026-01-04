@@ -6,14 +6,14 @@ database:
   url: ${DATABASE_URL}
 
 rabbitmq:
-  url: ${RABBITMQ_URL:amqp://guest:guest@rabbitmq-service-api.rabbitmq.svc.cluster.local:5672/}
+  url: ${RABBITMQ_URL}
   exchange: ticket_exchange
   queue:
     purchased: ticket.purchased
     confirmed: ticket.confirmed
 
 keycloak:
-  url: ${KEYCLOAK_URL:http://keycloak-service.keycloak.svc.cluster.local:8080}
+  url: ${KEYCLOAK_URL}
   realm: dws
   client_id: dws-ticket-service
 
