@@ -39,6 +39,6 @@ type ErrorResponse struct {
 
 // HealthResponse represents a health check response
 type HealthResponse struct {
-	Status   string            `json:"status"`
 	Services map[string]string `json:"services,omitempty"`
+	Status   string            `json:"status"`
 }
