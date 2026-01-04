@@ -39,6 +39,4 @@ issues:
 run:
   timeout: 5m
   tests: false
-  skip-dirs:
-    - prisma/db
-    - vendor
+  skip-dirs-use-default: true

@@ -61,7 +61,6 @@ func SetupRouter(cfg *configs.Config, dbService *services.DatabaseService, rmqSe
 
 func requestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := gin.H{}
 		c.Next()
 
 		log.WithFields(log.Fields{
