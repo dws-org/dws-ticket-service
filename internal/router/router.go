@@ -7,8 +7,10 @@ import (
 	"github.com/oskargbc/dws-ticket-service/internal/controllers/health"
 	"github.com/oskargbc/dws-ticket-service/internal/controllers/tickets"
 	"github.com/oskargbc/dws-ticket-service/internal/middlewares"
+	"github.com/oskargbc/dws-ticket-service/internal/pkg/metrics"
 	"github.com/oskargbc/dws-ticket-service/internal/pkg/rabbitmq"
 	"github.com/oskargbc/dws-ticket-service/internal/services"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,6 +22,7 @@ func SetupRouter(cfg *configs.Config, dbService *services.DatabaseService, rmqSe
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(requestLogger())
+	router.Use(metrics.PrometheusMiddleware("dws-ticket-service"))
 
 	// CORS configuration
 	corsConfig := cors.Config{
@@ -29,6 +32,9 @@ func SetupRouter(cfg *configs.Config, dbService *services.DatabaseService, rmqSe
 		AllowCredentials: true,
 	}
 	router.Use(cors.New(corsConfig))
+
+	// Metrics endpoint (no auth required)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	// Initialize controllers
 	healthController := health.NewHealthController(dbService, rmqService)
