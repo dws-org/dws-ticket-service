@@ -14,7 +14,7 @@ rabbitmq:
 
 keycloak:
   url: ${KEYCLOAK_URL}
-  realm: dws
+  realm: dws-org
   client_id: dws-ticket-service
 
 cors:

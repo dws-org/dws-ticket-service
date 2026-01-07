@@ -95,7 +95,7 @@ func LoadConfig() (*Config, error) {
 	if keycloakURL := os.Getenv("KEYCLOAK_URL"); keycloakURL != "" {
 		config.Keycloak.URL = keycloakURL
 	} else if config.Keycloak.URL == "" {
-		config.Keycloak.URL = "http://keycloak-service.keycloak.svc.cluster.local:8080"
+		config.Keycloak.URL = "http://keycloak.keycloak.svc.cluster.local:8080"
 	}
 
 	return &config, nil
