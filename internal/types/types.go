@@ -4,7 +4,7 @@ import "time"
 
 // PurchaseRequest represents a ticket purchase request
 type PurchaseRequest struct {
-	EventID    string  `json:"event_id" binding:"required,uuid"`
+	EventID    string  `json:"event_id" binding:"required"`
 	Quantity   int     `json:"quantity" binding:"required,min=1,max=10"`
 	TotalPrice float64 `json:"total_price" binding:"required,min=0"`
 }
