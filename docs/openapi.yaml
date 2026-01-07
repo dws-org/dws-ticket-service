@@ -1,0 +1,118 @@
+openapi: 3.0.3
+info:
+  title: DWS Ticket Service API
+  description: |
+    Ticket purchasing and management microservice for the Dynamic Web Systems platform.
+    
+    This service handles:
+    - Ticket purchasing with RabbitMQ integration
+    - User ticket management (view, cancel)
+    - Ticket status tracking (pending, confirmed, cancelled)
+    - Integration with Keycloak for authentication
+    
+    ## Authentication
+    All API endpoints require Bearer token authentication via Keycloak.
+    
+    ## Workflow
+    1. User purchases ticket → Status: pending
+    2. Message published to RabbitMQ queue
+    3. Consumer processes message → Status: confirmed
+    4. User can view tickets or cancel them
+    
+  version: 1.0.0
+
+servers:
+  - url: https://ticket.ltu-m7011e-6.se/api/v1
+    description: Production server
+
+tags:
+  - name: tickets
+  - name: health
+
+paths:
+  /tickets/purchase:
+    post:
+      tags: [tickets]
+      summary: Purchase tickets
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [event_id, quantity, total_price]
+              properties:
+                event_id:
+                  type: string
+                quantity:
+                  type: integer
+                  minimum: 1
+                total_price:
+                  type: number
+      responses:
+        '201':
+          description: Ticket created
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /tickets/my-tickets:
+    get:
+      tags: [tickets]
+      summary: Get my tickets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of tickets
+        '401':
+          description: Unauthorized
+
+  /tickets/{id}:
+    get:
+      tags: [tickets]
+      summary: Get ticket by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket details
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+
+    delete:
+      tags: [tickets]
+      summary: Cancel ticket
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket cancelled
+        '400':
+          description: Already cancelled
+        '403':
+          description: Forbidden
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
