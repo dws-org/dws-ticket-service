@@ -97,8 +97,21 @@ func KeycloakAuthMiddleware(cfg *configs.Config) gin.HandlerFunc {
 			return
 		}
 
-		// Store user ID in context
+		// Extract roles from realm_access
+		var roles []string
+		if realmAccess, ok := claims["realm_access"].(map[string]interface{}); ok {
+			if rolesInterface, ok := realmAccess["roles"].([]interface{}); ok {
+				for _, role := range rolesInterface {
+					if roleStr, ok := role.(string); ok {
+						roles = append(roles, roleStr)
+					}
+				}
+			}
+		}
+
+		// Store user ID and roles in context
 		c.Set("user_id", userID)
+		c.Set("user_roles", roles)
 		c.Next()
 	}
 }
@@ -150,4 +163,45 @@ func parseRSAPublicKey(nStr, eStr string) (*rsa.PublicKey, error) {
 		N: n,
 		E: int(e.Int64()),
 	}, nil
+}
+
+// RequireRole ensures that the authenticated user has the given realm role
+func RequireRole(requiredRole string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		roles, exists := c.Get("user_roles")
+		if !exists {
+			log.Debug("RequireRole: no roles found in context")
+			c.JSON(http.StatusForbidden, gin.H{
+				"error":   "Forbidden",
+				"message": "Missing required role",
+			})
+			c.Abort()
+			return
+		}
+
+		userRoles, ok := roles.([]string)
+		if !ok || len(userRoles) == 0 {
+			log.Debug("RequireRole: invalid roles format")
+			c.JSON(http.StatusForbidden, gin.H{
+				"error":   "Forbidden",
+				"message": "Missing required role",
+			})
+			c.Abort()
+			return
+		}
+
+		for _, role := range userRoles {
+			if role == requiredRole {
+				c.Next()
+				return
+			}
+		}
+
+		log.Debugf("RequireRole: user roles %v do not include required role %s", userRoles, requiredRole)
+		c.JSON(http.StatusForbidden, gin.H{
+			"error":   "Forbidden",
+			"message": fmt.Sprintf("Requires '%s' role", requiredRole),
+		})
+		c.Abort()
+	}
 }
