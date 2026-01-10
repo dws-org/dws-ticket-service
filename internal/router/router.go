@@ -59,6 +59,8 @@ func SetupRouter(cfg *configs.Config, dbService *services.DatabaseService, rmqSe
 			ticketsGroup.GET("/my-tickets", ticketsController.GetMyTickets)
 			ticketsGroup.GET("/:id", ticketsController.GetTicketByID)
 			ticketsGroup.DELETE("/:id", ticketsController.CancelTicket)
+			// Admin/Organiser endpoint to get all tickets
+			ticketsGroup.GET("", middlewares.RequireRole("Organiser"), ticketsController.GetAllTickets)
 		}
 	}
 

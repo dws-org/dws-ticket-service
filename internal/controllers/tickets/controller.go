@@ -121,6 +121,32 @@ func (tc *TicketsController) GetMyTickets(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// GetAllTickets handles GET /api/v1/tickets (admin/organiser only)
+func (tc *TicketsController) GetAllTickets(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	tickets, err := tc.dbService.Client.Ticket.FindMany().OrderBy(
+		db.Ticket.CreatedAt.Order(db.DESC),
+	).Exec(ctx)
+
+	if err != nil {
+		log.WithError(err).Error("Failed to fetch all tickets")
+		c.JSON(http.StatusInternalServerError, types.ErrorResponse{
+			Error:   "database_error",
+			Message: "Failed to fetch tickets",
+		})
+		return
+	}
+
+	response := make([]types.TicketResponse, len(tickets))
+	for i, ticket := range tickets {
+		response[i] = mapTicketToResponse(&ticket)
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 // GetTicketByID handles GET /api/v1/tickets/:id
 func (tc *TicketsController) GetTicketByID(c *gin.Context) {
 	ticketID := c.Param("id")
