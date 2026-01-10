@@ -62,6 +62,9 @@ func SetupRouter(cfg *configs.Config, dbService *services.DatabaseService, rmqSe
 			// Admin/Organiser endpoint to get all tickets
 			ticketsGroup.GET("", middlewares.RequireRole("Organiser"), ticketsController.GetAllTickets)
 		}
+
+		// Public stats endpoint (no auth required)
+		v1.GET("/event-stats", ticketsController.GetEventStats)
 	}
 
 	return router

@@ -261,3 +261,51 @@ func mapTicketToResponse(ticket *db.TicketModel) types.TicketResponse {
 		UpdatedAt:  ticket.UpdatedAt,
 	}
 }
+
+// GetEventStats returns ticket statistics per event (public endpoint)
+func (tc *TicketsController) GetEventStats(c *gin.Context) {
+ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+defer cancel()
+
+// Get all confirmed tickets
+tickets, err := tc.dbService.Client.Ticket.FindMany(
+db.Ticket.Status.Equals("confirmed"),
+).Exec(ctx)
+
+if err != nil {
+log.WithError(err).Error("Failed to fetch tickets for stats")
+c.JSON(http.StatusInternalServerError, gin.H{
+"error": "Failed to fetch statistics",
+})
+return
+}
+
+// Aggregate by event
+stats := make(map[string]*EventStats)
+for _, ticket := range tickets {
+if existing, ok := stats[ticket.EventID]; ok {
+existing.TicketsSold += ticket.Quantity
+existing.TotalRevenue += ticket.TotalPrice
+} else {
+stats[ticket.EventID] = &EventStats{
+EventID:      ticket.EventID,
+TicketsSold:  ticket.Quantity,
+TotalRevenue: ticket.TotalPrice,
+}
+}
+}
+
+// Convert map to array
+result := make([]EventStats, 0, len(stats))
+for _, stat := range stats {
+result = append(result, *stat)
+}
+
+c.JSON(http.StatusOK, result)
+}
+
+type EventStats struct {
+EventID      string  `json:"eventId"`
+TicketsSold  int     `json:"ticketsSold"`
+TotalRevenue float64 `json:"totalRevenue"`
+}
